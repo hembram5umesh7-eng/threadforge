@@ -126,6 +126,59 @@ function Checkout() {
       return;
     }
 
+    if (paymentMethod === "online") {
+      const ok = await loadRazorpayScript();
+      if (!ok) {
+        setSubmitting(false);
+        toast.error("Failed to load payment gateway");
+        return;
+      }
+      try {
+        const rzp = await createRzpOrder({ data: { orderId: order.id } });
+        const options = {
+          key: rzp.keyId,
+          amount: rzp.amount,
+          currency: rzp.currency,
+          name: "ThreadForge",
+          description: `Order ${rzp.orderNumber}`,
+          order_id: rzp.razorpayOrderId,
+          prefill: { name: a.full_name, contact: a.phone, email: user.email ?? "" },
+          theme: { color: "#ff3f6c" },
+          handler: async (resp: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+            try {
+              await verifyRzpPayment({
+                data: {
+                  orderId: order.id,
+                  razorpay_order_id: resp.razorpay_order_id,
+                  razorpay_payment_id: resp.razorpay_payment_id,
+                  razorpay_signature: resp.razorpay_signature,
+                },
+              });
+              cart.clear();
+              toast.success(`Payment successful · Order ${order.order_number}`);
+              navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Payment verification failed");
+              setSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setSubmitting(false);
+              toast.message("Payment cancelled. Your order is saved as unpaid.");
+              navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
+            },
+          },
+        };
+        if (!window.Razorpay) throw new Error("Razorpay unavailable");
+        new window.Razorpay(options).open();
+      } catch (err) {
+        setSubmitting(false);
+        toast.error(err instanceof Error ? err.message : "Could not start payment");
+      }
+      return;
+    }
+
     cart.clear();
     toast.success(`Order ${order.order_number} placed!`);
     navigate({ to: "/orders/$orderId", params: { orderId: order.id } });
