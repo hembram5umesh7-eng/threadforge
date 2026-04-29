@@ -224,11 +224,11 @@ function Checkout() {
                     <p className="text-xs text-muted-foreground">Pay when you receive your order</p>
                   </div>
                 </label>
-                <label className={`flex gap-3 p-3 rounded-lg border-2 cursor-not-allowed opacity-60 ${paymentMethod === "online" ? "border-primary bg-primary/5" : "border-border"}`}>
-                  <input type="radio" name="pay" value="online" disabled />
+                <label className={`flex gap-3 p-3 rounded-lg border-2 cursor-pointer ${paymentMethod === "online" ? "border-primary bg-primary/5" : "border-border"}`}>
+                  <input type="radio" name="pay" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} />
                   <div>
-                    <p className="font-semibold text-sm">Razorpay / Stripe (coming soon)</p>
-                    <p className="text-xs text-muted-foreground">Online card / UPI payments</p>
+                    <p className="font-semibold text-sm">Pay Online (Razorpay)</p>
+                    <p className="text-xs text-muted-foreground">Card, UPI, Netbanking, Wallets</p>
                   </div>
                 </label>
               </div>
