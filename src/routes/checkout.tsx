@@ -49,6 +49,8 @@ function Checkout() {
   const cart = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
+  const createRzpOrder = useServerFn(createRazorpayOrder);
+  const verifyRzpPayment = useServerFn(verifyRazorpayPayment);
 
   useEffect(() => {
     if (!user) navigate({ to: "/auth", search: { redirect: "/checkout" } });
