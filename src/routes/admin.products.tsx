@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatINR } from "@/lib/order-utils";
-import { Plus, Pencil, Trash2, Image as ImageIcon, X, Layers } from "lucide-react";
+import { Plus, Pencil, Trash2, Image as ImageIcon, Layers } from "lucide-react";
 import { toast } from "sonner";
+import { MultiImageUpload, SingleImageUpload } from "@/components/image-upload";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
 
