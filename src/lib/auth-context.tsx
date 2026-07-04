@@ -1,84 +1,99 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  type AppRole,
+  readCachedSession,
+  rolesFromUser,
+  syncSupabaseSession,
+  canAccessAdminPanel,
+  isSuperAdmin,
+} from "@/lib/auth-session";
 
-export type AppRole = "user" | "admin" | "manufacturer";
+export type { AppRole };
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   roles: AppRole[];
-  loading: boolean;
+  ready: boolean;
+  /** Super admin (full control incl. staff management) */
   isAdmin: boolean;
+  /** Store worker — admin panel access on behalf of admin */
+  isStaff: boolean;
+  /** Admin or staff — can open admin panel */
+  canAccessAdmin: boolean;
   isManufacturer: boolean;
   signOut: () => Promise<void>;
-  refreshRoles: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(true);
+function applyAuth(session: Session | null) {
+  const nextUser = session?.user ?? null;
+  const roles = rolesFromUser(nextUser);
+  return { session, user: nextUser, roles };
+}
 
-  const loadRoles = async (uid: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data?.map((r) => r.role as AppRole)) ?? []);
-  };
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const cached = readCachedSession();
+  const [session, setSession] = useState<Session | null>(cached);
+  const [user, setUser] = useState<User | null>(cached?.user ?? null);
+  const [roles, setRoles] = useState<AppRole[]>(() => rolesFromUser(cached?.user));
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Set up listener FIRST
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      if (newSession?.user) {
-        // defer to avoid deadlock
-        setTimeout(() => loadRoles(newSession.user.id), 0);
-      } else {
-        setRoles([]);
-      }
+    let active = true;
+
+    const commit = (next: Session | null) => {
+      if (!active) return;
+      const state = applyAuth(next);
+      setSession(state.session);
+      setUser(state.user);
+      setRoles(state.roles);
+    };
+
+    void (async () => {
+      const synced = await syncSupabaseSession();
+      if (!active) return;
+      commit(synced ?? readCachedSession());
+      setReady(true);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      commit(nextSession ?? readCachedSession());
+      if (active) setReady(true);
     });
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) loadRoles(s.user.id);
-      setLoading(false);
-    });
-
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setUser(null);
     setSession(null);
+    setUser(null);
     setRoles([]);
   };
 
-  const refreshRoles = async () => {
-    if (user) await loadRoles(user.id);
-  };
+  const value = useMemo(() => {
+    const effectiveRoles = roles.length > 0 ? roles : rolesFromUser(user);
+    return {
+      user,
+      session,
+      roles: effectiveRoles,
+      ready,
+      isAdmin: isSuperAdmin(effectiveRoles),
+      isStaff: effectiveRoles.includes("staff"),
+      canAccessAdmin: canAccessAdminPanel(effectiveRoles),
+      isManufacturer: effectiveRoles.includes("manufacturer"),
+      signOut,
+    };
+  }, [user, session, roles, ready]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        roles,
-        loading,
-        isAdmin: roles.includes("admin"),
-        isManufacturer: roles.includes("manufacturer"),
-        signOut,
-        refreshRoles,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

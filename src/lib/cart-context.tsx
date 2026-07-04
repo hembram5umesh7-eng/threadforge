@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 export interface CartItem {
-  id: string; // unique cart line id
+  id: string;
   productId: string;
   productName: string;
   productImage: string;
@@ -10,11 +10,7 @@ export interface CartItem {
   colorHex: string;
   variantId: string | null;
   basePrice: number;
-  customizationPrice: number;
   quantity: number;
-  designData?: unknown;
-  previewFront?: string;
-  previewBack?: string;
 }
 
 interface CartContextValue {
@@ -28,7 +24,7 @@ interface CartContextValue {
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
-const STORAGE_KEY = "tf_cart_v1";
+const STORAGE_KEY = "tf_cart_v2";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -52,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: Math.max(1, qty) } : i)));
   const clear = () => setItems([]);
 
-  const subtotal = items.reduce((sum, i) => sum + (i.basePrice + i.customizationPrice) * i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + i.basePrice * i.quantity, 0);
   const count = items.reduce((s, i) => s + i.quantity, 0);
 
   return (

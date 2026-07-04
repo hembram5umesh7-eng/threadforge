@@ -10,13 +10,13 @@ export const Route = createFileRoute("/orders/")({ component: OrdersList });
 interface OrderRow { id: string; order_number: string; status: OrderStatus; total: number; created_at: string }
 
 function OrdersList() {
-  const { user, loading } = useAuth();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderRow[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/orders" } });
-  }, [loading, user, navigate]);
+    if (ready && !user) navigate({ to: "/auth", search: { redirect: "/orders" } });
+  }, [ready, user, navigate]);
 
   useEffect(() => {
     if (!user) return;

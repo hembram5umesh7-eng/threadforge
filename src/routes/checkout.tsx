@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/order-utils";
 import { toast } from "sonner";
 import { z } from "zod";
-import { createRazorpayOrder, verifyRazorpayPayment } from "@/server/razorpay.functions";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay.functions";
 
 declare global {
   interface Window {
@@ -115,10 +115,6 @@ function Checkout() {
       color: it.color,
       quantity: it.quantity,
       unit_price: it.basePrice,
-      customization_price: it.customizationPrice,
-      design_data: (it.designData as never) ?? null,
-      preview_front_url: it.previewFront ?? null,
-      preview_back_url: it.previewBack ?? null,
     }));
 
     const { error: itemsErr } = await supabase.from("order_items").insert(itemRows);
@@ -241,7 +237,7 @@ function Checkout() {
               {cart.items.map((it) => (
                 <div key={it.id} className="flex justify-between gap-2">
                   <span className="truncate">{it.productName} × {it.quantity}</span>
-                  <span>{formatINR((it.basePrice + it.customizationPrice) * it.quantity)}</span>
+                  <span>{formatINR(it.basePrice * it.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -253,7 +249,6 @@ function Checkout() {
             <Button type="submit" size="lg" className="w-full mt-4 font-bold" disabled={submitting}>
               {submitting ? "Placing order…" : "Place Order"}
             </Button>
-            <p className="text-xs text-destructive font-semibold mt-3 text-center">⚠ No refunds on customized products</p>
           </aside>
         </form>
       </main>

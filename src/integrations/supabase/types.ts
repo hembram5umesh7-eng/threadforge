@@ -59,6 +59,39 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       manufacturers: {
         Row: {
           active: boolean
@@ -96,12 +129,8 @@ export type Database = {
         Row: {
           color: string
           created_at: string
-          customization_price: number
-          design_data: Json | null
           id: string
           order_id: string
-          preview_back_url: string | null
-          preview_front_url: string | null
           product_id: string
           product_name: string
           quantity: number
@@ -112,12 +141,8 @@ export type Database = {
         Insert: {
           color: string
           created_at?: string
-          customization_price?: number
-          design_data?: Json | null
           id?: string
           order_id: string
-          preview_back_url?: string | null
-          preview_front_url?: string | null
           product_id: string
           product_name: string
           quantity?: number
@@ -128,12 +153,8 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
-          customization_price?: number
-          design_data?: Json | null
           id?: string
           order_id?: string
-          preview_back_url?: string | null
-          preview_front_url?: string | null
           product_id?: string
           product_name?: string
           quantity?: number
@@ -167,10 +188,12 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_notes: string | null
           created_at: string
           id: string
           manufacturer_id: string | null
           notes: string | null
+          supplier_notes: string | null
           order_number: string
           payment_method: Database["public"]["Enums"]["payment_method"]
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -182,6 +205,10 @@ export type Database = {
           ship_phone: string
           ship_pincode: string
           ship_state: string
+          shiprocket_label_url: string | null
+          shiprocket_order_id: number | null
+          shiprocket_shipment_id: number | null
+          courier_name: string | null
           shipping_fee: number
           status: Database["public"]["Enums"]["order_status"]
           subtotal: number
@@ -191,10 +218,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string
           id?: string
           manufacturer_id?: string | null
           notes?: string | null
+          supplier_notes?: string | null
           order_number?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -206,6 +235,10 @@ export type Database = {
           ship_phone: string
           ship_pincode: string
           ship_state: string
+          shiprocket_label_url?: string | null
+          shiprocket_order_id?: number | null
+          shiprocket_shipment_id?: number | null
+          courier_name?: string | null
           shipping_fee?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal: number
@@ -215,10 +248,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string
           id?: string
           manufacturer_id?: string | null
           notes?: string | null
+          supplier_notes?: string | null
           order_number?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -230,6 +265,10 @@ export type Database = {
           ship_phone?: string
           ship_pincode?: string
           ship_state?: string
+          shiprocket_label_url?: string | null
+          shiprocket_order_id?: number | null
+          shiprocket_shipment_id?: number | null
+          courier_name?: string | null
           shipping_fee?: number
           status?: Database["public"]["Enums"]["order_status"]
           subtotal?: number
@@ -327,62 +366,41 @@ export type Database = {
       products: {
         Row: {
           active: boolean
-          allow_image: boolean
-          allow_text: boolean
           base_price: number
-          category: Database["public"]["Enums"]["product_category"]
+          category: string
           created_at: string
-          customizable: boolean
           description: string | null
           fabric: string | null
           id: string
-          image_price: number
           images: string[]
-          mockup_back_url: string | null
-          mockup_front_url: string | null
           name: string
           slug: string
-          text_price: number
           updated_at: string
         }
         Insert: {
           active?: boolean
-          allow_image?: boolean
-          allow_text?: boolean
           base_price: number
-          category: Database["public"]["Enums"]["product_category"]
+          category: string
           created_at?: string
-          customizable?: boolean
           description?: string | null
           fabric?: string | null
           id?: string
-          image_price?: number
           images?: string[]
-          mockup_back_url?: string | null
-          mockup_front_url?: string | null
           name: string
           slug: string
-          text_price?: number
           updated_at?: string
         }
         Update: {
           active?: boolean
-          allow_image?: boolean
-          allow_text?: boolean
           base_price?: number
-          category?: Database["public"]["Enums"]["product_category"]
+          category?: string
           created_at?: string
-          customizable?: boolean
           description?: string | null
           fabric?: string | null
           id?: string
-          image_price?: number
           images?: string[]
-          mockup_back_url?: string | null
-          mockup_front_url?: string | null
           name?: string
           slug?: string
-          text_price?: number
           updated_at?: string
         }
         Relationships: []
@@ -449,7 +467,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "user" | "admin" | "manufacturer"
+      app_role: "user" | "admin" | "staff" | "manufacturer"
       order_status:
         | "received"
         | "processing"
@@ -590,7 +608,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["user", "admin", "manufacturer"],
+      app_role: ["user", "admin", "staff", "manufacturer"],
       order_status: [
         "received",
         "processing",

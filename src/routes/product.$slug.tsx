@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 import { formatINR } from "@/lib/order-utils";
-import { Sparkles, ShoppingBag, Zap } from "lucide-react";
+import { ShoppingBag, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/product/$slug")({ component: ProductPage });
@@ -19,11 +19,6 @@ interface Product {
   fabric: string | null;
   images: string[] | null;
   category: string;
-  customizable: boolean;
-  allow_text: boolean;
-  allow_image: boolean;
-  text_price: number;
-  image_price: number;
 }
 interface Variant { id: string; size: string; color: string; color_hex: string; stock: number }
 
@@ -76,15 +71,10 @@ function ProductPage() {
       colorHex: selectedVariant?.color_hex ?? "#000",
       variantId: selectedVariant?.id ?? null,
       basePrice: product.base_price,
-      customizationPrice: 0,
       quantity: 1,
     });
     toast.success("Added to cart");
     if (buyNow) navigate({ to: "/cart" });
-  };
-
-  const customize = () => {
-    navigate({ to: "/customize", search: { product: product.slug } });
   };
 
   return (
@@ -92,7 +82,6 @@ function ProductPage() {
       <SiteHeader />
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Gallery */}
           <div>
             <div className="aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
               {product.images?.[imgIdx] && (
@@ -111,7 +100,6 @@ function ProductPage() {
             )}
           </div>
 
-          {/* Details */}
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{product.category}</p>
             <h1 className="text-2xl md:text-3xl font-extrabold mt-1">{product.name}</h1>
@@ -129,7 +117,6 @@ function ProductPage() {
               </div>
             )}
 
-            {/* Size */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-bold uppercase">Select Size</p>
@@ -146,7 +133,6 @@ function ProductPage() {
               </div>
             </div>
 
-            {/* Color */}
             <div className="mt-6">
               <p className="text-sm font-bold uppercase mb-2">Color {color && <span className="text-muted-foreground font-normal">— {color}</span>}</p>
               <div className="flex flex-wrap gap-2">
@@ -158,7 +144,6 @@ function ProductPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="flex-1 font-bold" onClick={() => addToCart(false)}>
                 <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
@@ -168,20 +153,12 @@ function ProductPage() {
               </Button>
             </div>
 
-            {product.customizable && (
-              <Button size="lg" variant="outline" className="w-full mt-3 font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground" onClick={customize}>
-                <Sparkles className="mr-2 h-5 w-5" /> Customize This Product
-              </Button>
-            )}
-
             {product.description && (
               <div className="mt-8 prose prose-sm max-w-none">
                 <h3 className="font-bold uppercase text-sm">Product Details</h3>
                 <p className="text-sm text-muted-foreground">{product.description}</p>
               </div>
             )}
-
-            <p className="mt-6 text-xs text-destructive font-semibold">⚠ No Refund Policy on customized products. Please check size & design carefully.</p>
           </div>
         </div>
       </main>

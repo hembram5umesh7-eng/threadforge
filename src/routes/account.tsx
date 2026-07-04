@@ -11,13 +11,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/account")({ component: Account });
 
 function Account() {
-  const { user, loading } = useAuth();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (!loading && !user) navigate({ to: "/auth", search: { redirect: "/account" } }); }, [loading, user, navigate]);
+  useEffect(() => { if (ready && !user) navigate({ to: "/auth", search: { redirect: "/account" } }); }, [ready, user, navigate]);
 
   useEffect(() => {
     if (!user) return;

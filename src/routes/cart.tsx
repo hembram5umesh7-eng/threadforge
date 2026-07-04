@@ -30,16 +30,13 @@ function CartPage() {
               {items.map((it) => (
                 <div key={it.id} className="flex gap-4 p-4 bg-card border rounded-xl">
                   <div className="w-20 h-24 rounded-lg bg-muted overflow-hidden shrink-0">
-                    {(it.previewFront ?? it.productImage) && (
-                      <img src={it.previewFront ?? it.productImage} alt={it.productName} className="w-full h-full object-cover" />
+                    {it.productImage && (
+                      <img src={it.productImage} alt={it.productName} className="w-full h-full object-cover" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm">{it.productName}</h3>
                     <p className="text-xs text-muted-foreground">Size {it.size} · {it.color}</p>
-                    {it.customizationPrice > 0 && (
-                      <p className="text-xs text-primary font-semibold mt-1">✨ Custom design (+ {formatINR(it.customizationPrice)})</p>
-                    )}
                     <div className="mt-2 flex items-center gap-2">
                       <button onClick={() => updateQty(it.id, it.quantity - 1)} className="w-7 h-7 rounded-full border flex items-center justify-center"><Minus className="h-3 w-3" /></button>
                       <span className="font-semibold text-sm w-6 text-center">{it.quantity}</span>
@@ -47,7 +44,7 @@ function CartPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{formatINR((it.basePrice + it.customizationPrice) * it.quantity)}</p>
+                    <p className="font-bold">{formatINR(it.basePrice * it.quantity)}</p>
                     <button onClick={() => remove(it.id)} className="mt-2 text-muted-foreground hover:text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -71,7 +68,6 @@ function CartPage() {
               <Button size="lg" className="w-full mt-4 font-bold" onClick={() => navigate({ to: "/checkout" })}>
                 Proceed to Checkout
               </Button>
-              <p className="text-xs text-destructive font-semibold mt-3 text-center">⚠ No refunds on customized products</p>
             </div>
           </div>
         )}

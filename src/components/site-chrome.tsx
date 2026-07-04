@@ -3,6 +3,7 @@ import { ShoppingBag, User, Search, LogOut, Menu, X, Sparkles } from "lucide-rea
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { useCategories } from "@/lib/categories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,20 +15,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const NAV = [
-  { label: "T-Shirts", to: "/category/tshirt" as const },
-  { label: "Hoodies", to: "/category/hoodie" as const },
-  { label: "Jeans", to: "/category/jeans" as const },
-  { label: "Shirts", to: "/category/shirt" as const },
-  { label: "Customize", to: "/customize" as const },
+const FALLBACK_NAV = [
+  { label: "T-Shirts", slug: "tshirt" },
+  { label: "Hoodies", slug: "hoodie" },
+  { label: "Jeans", slug: "jeans" },
+  { label: "Shirts", slug: "shirt" },
 ];
 
 export function SiteHeader() {
-  const { user, isAdmin, isManufacturer, signOut } = useAuth();
+  const { user, isAdmin, isStaff, isManufacturer, signOut } = useAuth();
   const { count } = useCart();
+  const { categories } = useCategories();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [q, setQ] = useState("");
+
+  const navItems = categories.length
+    ? categories.map((c) => ({ label: c.name, slug: c.slug }))
+    : FALLBACK_NAV;
 
   const search = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +43,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       {/* Promo bar */}
       <div className="bg-gradient-promo text-white text-xs font-medium text-center py-1.5 px-4">
-        🎉 Free shipping on orders above ₹999 · Customize anything · Made in India
+        🎉 Free shipping on orders above ₹999 · New arrivals daily · Made in India
       </div>
 
       <div className="container mx-auto flex h-16 items-center gap-4 px-4">
@@ -52,10 +57,11 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV.map((n) => (
+          {navItems.map((n) => (
             <Link
-              key={n.to}
-              to={n.to}
+              key={n.slug}
+              to="/category/$category"
+              params={{ category: n.slug }}
               className="px-3 py-2 text-sm font-semibold uppercase tracking-wide text-foreground/80 hover:text-primary transition-colors"
               activeProps={{ className: "text-primary" }}
             >
@@ -94,6 +100,12 @@ export function SiteHeader() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>Admin Dashboard</DropdownMenuItem>
+                  </>
+                )}
+                {isStaff && !isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate({ to: "/staff" })}>Worker Portal</DropdownMenuItem>
                   </>
                 )}
                 {isManufacturer && (
@@ -139,10 +151,11 @@ export function SiteHeader() {
       {mobileOpen && (
         <div className="lg:hidden border-t bg-background">
           <nav className="container mx-auto flex flex-col px-4 py-2">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <Link
-                key={n.to}
-                to={n.to}
+                key={n.slug}
+                to="/category/$category"
+                params={{ category: n.slug }}
                 onClick={() => setMobileOpen(false)}
                 className="py-3 text-sm font-semibold uppercase tracking-wide border-b last:border-0"
               >
@@ -157,6 +170,11 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
+  const { categories } = useCategories();
+  const shopLinks = categories.length
+    ? categories.map((c) => ({ label: c.name, slug: c.slug }))
+    : FALLBACK_NAV;
+
   return (
     <footer className="border-t bg-muted/30 mt-20">
       <div className="container mx-auto px-4 py-12 grid gap-8 md:grid-cols-4">
@@ -166,16 +184,17 @@ export function SiteFooter() {
             <span className="font-bold">ThreadForge</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Custom fashion, manufactured to order. Design it. Wear it. Own it.
+            Premium fashion at honest prices. Shop tees, hoodies, jeans & more.
           </p>
         </div>
         <div>
           <h4 className="font-semibold mb-3 text-sm">Shop</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/category/tshirt" className="hover:text-foreground">T-Shirts</Link></li>
-            <li><Link to="/category/hoodie" className="hover:text-foreground">Hoodies</Link></li>
-            <li><Link to="/category/jeans" className="hover:text-foreground">Jeans</Link></li>
-            <li><Link to="/customize" className="hover:text-foreground">Custom Design Studio</Link></li>
+            {shopLinks.map((c) => (
+              <li key={c.slug}>
+                <Link to="/category/$category" params={{ category: c.slug }} className="hover:text-foreground">{c.label}</Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div>

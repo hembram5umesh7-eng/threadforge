@@ -16,7 +16,7 @@ interface Order {
 }
 interface Item {
   id: string; product_name: string; size: string; color: string; quantity: number;
-  unit_price: number; customization_price: number; preview_front_url: string | null;
+  unit_price: number;
 }
 
 function OrderDetail() {
@@ -95,16 +95,12 @@ function OrderDetail() {
             <h2 className="font-bold mb-3">Items</h2>
             <div className="space-y-3">
               {items.map((it) => (
-                <div key={it.id} className="flex gap-3">
-                  <div className="w-16 h-20 rounded-lg bg-muted overflow-hidden shrink-0">
-                    {it.preview_front_url && <img src={it.preview_front_url} alt="" className="w-full h-full object-cover" />}
-                  </div>
+                <div key={it.id} className="flex gap-3 items-start">
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{it.product_name}</p>
                     <p className="text-xs text-muted-foreground">Size {it.size} · {it.color} · Qty {it.quantity}</p>
-                    {it.customization_price > 0 && <p className="text-xs text-primary font-semibold">✨ Custom design</p>}
                   </div>
-                  <p className="font-bold text-sm">{formatINR((it.unit_price + it.customization_price) * it.quantity)}</p>
+                  <p className="font-bold text-sm">{formatINR(it.unit_price * it.quantity)}</p>
                 </div>
               ))}
             </div>

@@ -17,7 +17,7 @@ function SearchPage() {
     if (!q) return;
     supabase
       .from("products")
-      .select("id,name,slug,base_price,images,category,customizable")
+      .select("id,name,slug,base_price,images,category")
       .eq("active", true)
       .ilike("name", `%${q}%`)
       .then(({ data }) => setProducts((data as ProductCardData[]) ?? []));
