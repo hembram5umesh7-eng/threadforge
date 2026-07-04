@@ -12,6 +12,7 @@ dist
 dist-ssr
 .output
 .output/**
+.vercel
 .vinxi
 .tanstack/**
 .nitro
@@ -34,3 +35,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel
